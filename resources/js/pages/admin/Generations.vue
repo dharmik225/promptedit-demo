@@ -4,14 +4,15 @@ import PaginationLinks from '@/components/generations/PaginationLinks.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { usePollWhile } from '@/composables/usePollWhile';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { formatDateTime, formatTokens, formatUsd } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import type { Generation, GenerationStatus, Paginated } from '@/types/generation';
-import { Head, Link, router, usePoll } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { Search } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
     summary: {
@@ -61,9 +62,7 @@ function applyFilters(status: GenerationStatus | null = props.filters.status): v
 
 const hasInProgress = computed(() => props.generations.data.some((generation) => generation.is_in_progress));
 
-const { start: startPolling, stop: stopPolling } = usePoll(5000, { only: ['generations', 'summary'] }, { autoStart: false });
-
-watch(hasInProgress, (inProgress) => (inProgress ? startPolling() : stopPolling()), { immediate: true });
+usePollWhile(hasInProgress, ['generations', 'summary'], 5000);
 </script>
 
 <template>

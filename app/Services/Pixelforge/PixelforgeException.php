@@ -21,15 +21,13 @@ class PixelforgeException extends RuntimeException
 
     public static function fromResponse(Response $response): self
     {
-        $error = $response->json('error');
-        $error = is_array($error) ? $error : [];
-
+        $errorCode = $response->json('error.code');
         $retryAfter = $response->header('Retry-After');
 
         return new self(
-            message: (string) ($error['message'] ?? "Pixelforge responded with HTTP {$response->status()}."),
+            message: (string) ($response->json('error.message') ?? "Pixelforge responded with HTTP {$response->status()}."),
             status: $response->status(),
-            errorCode: isset($error['code']) ? (string) $error['code'] : null,
+            errorCode: $errorCode !== null ? (string) $errorCode : null,
             retryAfter: is_numeric($retryAfter) ? (int) $retryAfter : null,
         );
     }
@@ -68,11 +66,6 @@ class PixelforgeException extends RuntimeException
         }
 
         return $this->status >= 500;
-    }
-
-    public function isNotFound(): bool
-    {
-        return $this->status === 404;
     }
 
     public function isRequestRateLimited(): bool

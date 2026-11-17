@@ -19,6 +19,8 @@ class PixelforgePricingService
 
     private const PRICING_CACHE_KEY = 'pixelforge:pricing';
 
+    private ?PixelforgePricing $pricing = null;
+
     public function __construct(
         private readonly PixelforgeClient $client,
         private readonly CacheRepository $cache,
@@ -26,15 +28,23 @@ class PixelforgePricingService
         private readonly string $markupPercentage,
     ) {}
 
+    /**
+     * Kept for the life of this instance, which is bound as scoped: one HTTP
+     * request or one queue job, so a long-running worker never keeps old prices.
+     */
     public function pricing(): PixelforgePricing
     {
+        if ($this->pricing !== null) {
+            return $this->pricing;
+        }
+
         $pricing = $this->cache->remember(
             self::PRICING_CACHE_KEY,
             $this->cacheTtlSeconds,
             fn (): array => PixelforgePricing::fromArray($this->client->pricing())->toArray(),
         );
 
-        return PixelforgePricing::fromArray($pricing);
+        return $this->pricing = PixelforgePricing::fromArray($pricing);
     }
 
     public function markupPercentage(): string
@@ -115,7 +125,7 @@ class PixelforgePricingService
 
     public function zeroCost(): string
     {
-        return bcadd('0', '0', self::SCALE);
+        return '0';
     }
 
     private function ceilDivide(int $dividend, int $divisor): int

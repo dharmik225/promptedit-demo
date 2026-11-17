@@ -10,15 +10,9 @@ class AdminGenerationService
 {
     public const PER_PAGE = 20;
 
-    /**
-     * @param array{status?: ?string, search?: ?string} $inputs
-     * @return LengthAwarePaginator<int, Generation>
-     */
-    public function collection(array $inputs): LengthAwarePaginator
+    /** @return LengthAwarePaginator<int, Generation> */
+    public function collection(?GenerationStatus $status, string $search): LengthAwarePaginator
     {
-        $status = GenerationStatus::tryFrom((string) ($inputs['status'] ?? ''));
-        $search = trim((string) ($inputs['search'] ?? ''));
-
         return Generation::query()
             ->with('user:id,name,email')
             ->when($status, fn ($query) => $query->where('status', $status))

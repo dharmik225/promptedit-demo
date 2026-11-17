@@ -3,13 +3,15 @@ import GenerationImage from '@/components/generations/GenerationImage.vue';
 import GenerationStatusBadge from '@/components/generations/GenerationStatusBadge.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useIsAdmin } from '@/composables/useIsAdmin';
+import { usePollWhile } from '@/composables/usePollWhile';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { formatDateTime, formatTokens, formatUsd } from '@/lib/format';
-import { type BreadcrumbItem, type User } from '@/types';
+import { type BreadcrumbItem } from '@/types';
 import type { Generation } from '@/types/generation';
-import { Head, Link, usePage, usePoll } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, ExternalLink, TriangleAlert } from 'lucide-vue-next';
-import { computed, watch } from 'vue';
+import { computed } from 'vue';
 
 const props = defineProps<{
     generation: { data: Generation };
@@ -17,28 +19,20 @@ const props = defineProps<{
 
 const generation = computed(() => props.generation.data);
 
-const page = usePage();
-
-const isAdmin = computed(() => (page.props.auth as { user: User }).user.role === 'admin');
+const isAdmin = useIsAdmin();
 
 const backLink = computed(() =>
     isAdmin.value
-        ? { title: 'Admin analytics', href: '/admin/generations', label: 'Back to analytics' }
-        : { title: 'History', href: '/generations', label: 'Back to history' },
+        ? { title: 'Admin analytics', href: route('admin.generations.index'), label: 'Back to analytics' }
+        : { title: 'History', href: route('generations.index'), label: 'Back to history' },
 );
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     { title: backLink.value.title, href: backLink.value.href },
-    { title: 'Details', href: `/generations/${generation.value.id}` },
+    { title: 'Details', href: route('generations.show', generation.value.id) },
 ]);
 
-const { start: startPolling, stop: stopPolling } = usePoll(3000, { only: ['generation'] }, { autoStart: false });
-
-watch(
-    () => generation.value.is_in_progress,
-    (inProgress) => (inProgress ? startPolling() : stopPolling()),
-    { immediate: true },
-);
+usePollWhile(() => generation.value.is_in_progress, ['generation']);
 
 const tokenRows = computed(() => [
     { label: 'Input text', key: 'input_text_tokens' as const },

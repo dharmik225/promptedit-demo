@@ -20,14 +20,9 @@ class GenerationService
 
     public function __construct(private readonly PixelforgePricingService $pricingService) {}
 
-    /**
-     * @param  array{status?: ?string}  $inputs
-     * @return LengthAwarePaginator<int, Generation>
-     */
-    public function collection(User $user, array $inputs): LengthAwarePaginator
+    /** @return LengthAwarePaginator<int, Generation> */
+    public function collection(User $user, ?GenerationStatus $status): LengthAwarePaginator
     {
-        $status = GenerationStatus::tryFrom((string) ($inputs['status'] ?? ''));
-
         return $user->generations()
             ->when($status, fn ($query) => $query->where('status', $status))
             ->latest()
@@ -59,7 +54,7 @@ class GenerationService
      */
     public function create(User $user, array $inputs): Generation
     {
-        $referenceImageUrls = array_values(array_filter($inputs['reference_image_urls'] ?? []));
+        $referenceImageUrls = $inputs['reference_image_urls'] ?? [];
 
         $estimate = $this->pricingService->estimate(
             promptCharacters: mb_strlen($inputs['prompt']),

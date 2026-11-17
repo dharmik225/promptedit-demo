@@ -2,6 +2,7 @@
 
 namespace App\Services\Pixelforge;
 
+use Illuminate\Validation\Rule;
 use UnexpectedValueException;
 
 /**
@@ -84,6 +85,18 @@ final readonly class PixelforgePricing
         }
 
         return array_values(array_unique($sizes));
+    }
+
+    /** @return array{
+     *     size: list<mixed>,
+     *     quality: list<mixed>
+     * } */
+    public function optionRules(): array
+    {
+        return [
+            'size' => ['required', 'string', Rule::in($this->sizes())],
+            'quality' => ['required', 'string', Rule::in($this->qualities())],
+        ];
     }
 
     public function supports(string $size, string $quality): bool

@@ -2,13 +2,14 @@
 import GenerationCard from '@/components/generations/GenerationCard.vue';
 import PaginationLinks from '@/components/generations/PaginationLinks.vue';
 import { Button } from '@/components/ui/button';
+import { usePollWhile } from '@/composables/usePollWhile';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import type { Generation, GenerationStatus, Paginated } from '@/types/generation';
-import { Head, Link, usePoll } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { ImagePlus } from 'lucide-vue-next';
-import { computed, watch } from 'vue';
+import { computed } from 'vue';
 
 const props = defineProps<{
     generations: Paginated<Generation>;
@@ -27,9 +28,7 @@ const statusFilters: { value: GenerationStatus | null; label: string }[] = [
 
 const hasInProgress = computed(() => props.generations.data.some((generation) => generation.is_in_progress));
 
-const { start: startPolling, stop: stopPolling } = usePoll(3000, { only: ['generations'] }, { autoStart: false });
-
-watch(hasInProgress, (inProgress) => (inProgress ? startPolling() : stopPolling()), { immediate: true });
+usePollWhile(hasInProgress, ['generations']);
 
 function filterUrl(status: GenerationStatus | null): string {
     return status ? route('generations.index', { status }) : route('generations.index');

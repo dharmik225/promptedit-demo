@@ -2,15 +2,14 @@
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { type NavItem, type User } from '@/types';
-import { Link, usePage } from '@inertiajs/vue3';
+import { useIsAdmin } from '@/composables/useIsAdmin';
+import { type NavItem } from '@/types';
+import { Link } from '@inertiajs/vue3';
 import { BarChart3, History, Sparkles } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
-const page = usePage();
-
-const isAdmin = computed(() => (page.props.auth as { user: User }).user.role === 'admin');
+const isAdmin = useIsAdmin();
 
 const homeHref = computed(() => (isAdmin.value ? route('admin.generations.index') : route('dashboard')));
 

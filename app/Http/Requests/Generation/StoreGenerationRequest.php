@@ -4,7 +4,6 @@ namespace App\Http\Requests\Generation;
 
 use App\Services\Pixelforge\PixelforgePricingService;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreGenerationRequest extends FormRequest
 {
@@ -40,8 +39,7 @@ class StoreGenerationRequest extends FormRequest
 
         return [
             'prompt' => ['required', 'string', 'max:'.config('services.pixelforge.max_prompt_length')],
-            'size' => ['required', 'string', Rule::in($pricing->sizes())],
-            'quality' => ['required', 'string', Rule::in($pricing->qualities())],
+            ...$pricing->optionRules(),
             'reference_image_urls' => ['nullable', 'array', 'max:'.config('services.pixelforge.max_reference_images')],
             'reference_image_urls.*' => ['required', 'string', 'url:http,https', 'max:2048', 'distinct'],
         ];

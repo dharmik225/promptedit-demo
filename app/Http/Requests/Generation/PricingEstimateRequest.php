@@ -4,7 +4,6 @@ namespace App\Http\Requests\Generation;
 
 use App\Services\Pixelforge\PixelforgePricingService;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /**
  * Takes the prompt's character count instead of the prompt itself, so
@@ -24,8 +23,7 @@ class PricingEstimateRequest extends FormRequest
 
         return [
             'prompt_characters' => ['required', 'integer', 'min:0', 'max:'.config('services.pixelforge.max_prompt_length')],
-            'size' => ['required', 'string', Rule::in($pricing->sizes())],
-            'quality' => ['required', 'string', Rule::in($pricing->qualities())],
+            ...$pricing->optionRules(),
             'reference_image_count' => ['required', 'integer', 'min:0', 'max:'.config('services.pixelforge.max_reference_images')],
         ];
     }

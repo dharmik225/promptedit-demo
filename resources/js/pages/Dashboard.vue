@@ -9,11 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { usePollWhile } from '@/composables/usePollWhile';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { formatTokens, formatUsd, promptCharacterCount } from '@/lib/format';
 import { type BreadcrumbItem } from '@/types';
 import type { CostEstimate, Generation, GenerationOptions } from '@/types/generation';
-import { Head, Link, useForm, usePoll } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
 import { ImagePlus, Info, LoaderCircle, Plus, Sparkles, Trash2, TriangleAlert } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -109,9 +110,7 @@ function submit(): void {
 
 const activeGeneration = computed(() => props.recentGenerations.data.find((generation) => generation.is_in_progress) ?? null);
 
-const { start: startPolling, stop: stopPolling } = usePoll(3000, { only: ['recentGenerations'] }, { autoStart: false });
-
-watch(activeGeneration, (generation) => (generation ? startPolling() : stopPolling()), { immediate: true });
+usePollWhile(() => activeGeneration.value !== null, ['recentGenerations']);
 
 const lifecycleSteps = [
     { status: 'pending', label: 'Submitted' },

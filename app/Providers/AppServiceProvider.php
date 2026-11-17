@@ -26,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
             cache: $app['cache.store'],
         ));
 
-        $this->app->singleton(PixelforgePricingService::class, fn (Application $app): PixelforgePricingService => new PixelforgePricingService(
+        $this->app->scoped(PixelforgePricingService::class, fn (Application $app): PixelforgePricingService => new PixelforgePricingService(
             client: $app->make(PixelforgeClient::class),
             cache: $app['cache.store'],
             cacheTtlSeconds: (int) config('services.pixelforge.pricing_cache_ttl'),

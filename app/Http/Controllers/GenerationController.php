@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\GenerationStatus;
 use App\Http\Requests\Generation\IndexGenerationRequest;
 use App\Http\Requests\Generation\StoreGenerationRequest;
-use App\Http\Resources\Generation\Collection;
 use App\Http\Resources\Generation\Resource;
 use App\Models\Generation;
 use App\Services\Generation\GenerationService;
@@ -19,10 +19,13 @@ class GenerationController extends Controller
 
     public function index(IndexGenerationRequest $request): Response
     {
-        $generations = $this->generationService->collection($request->user(), $request->validated());
+        $generations = $this->generationService->collection(
+            $request->user(),
+            $request->enum('status', GenerationStatus::class),
+        );
 
         return Inertia::render('generations/Index', [
-            'generations' => new Collection($generations),
+            'generations' => Resource::collection($generations),
             'filters' => ['status' => $request->validated('status')],
         ]);
     }
@@ -31,7 +34,7 @@ class GenerationController extends Controller
     {
         return Inertia::render('Dashboard', [
             'options' => $this->generationService->formOptions(),
-            'recentGenerations' => new Collection($this->generationService->recent($request->user())),
+            'recentGenerations' => Resource::collection($this->generationService->recent($request->user())),
         ]);
     }
 
